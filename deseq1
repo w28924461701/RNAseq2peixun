@@ -1,0 +1,14 @@
+setwd('D:\\test')
+library(DESeq2)
+library(tidyverse)
+sampleinfo <- read.delim("SampleInfo.txt", stringsAsFactors=F)
+# seqdata <- read.delim("GSE60450_Lactation.featureCounts",   comment = "#", stringsAsFactors=F)
+
+sampleinfo%>% mutate(Group=str_c(CellType,Status, sep = "."))->sampleinfo
+newTable <- sampleinfo
+basal <- which(newTable$CellType=="basal")
+newTable <- newTable[basal, ]
+
+newTable <- newTable[basal, c("CellType", "Group")]
+
+colnames(newTable)[1] <- "Cell"
