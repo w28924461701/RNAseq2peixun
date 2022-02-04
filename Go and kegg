@@ -1,0 +1,41 @@
+setwd("D:\\KIRC\\CDC20")
+      library(dplyr)
+              
+    rt<-read.table('lo_result_108750.txt',header = T,check.names = F,sep = '\t')  
+    
+    rt1<-filter(rt,`P-value`<0.01)
+    rt2<-filter(rt1, `FDR (BH)` <0.01)
+    
+    gene <- rt2$Query
+    
+    test = bitr(gene, #数据集
+                fromType="SYMBOL", #输入为SYMBOL格式
+                toType="ENTREZID",  # 转为ENTERZID格式
+                OrgDb="org.Hs.eg.db") #人类 数据库
+    ggo <- groupGO(gene = test$ENTREZID, OrgDb = org.Hs.eg.db, ont = "MF",level = 3,readable = TRUE)
+    head(ggo,2)
+    barplot(ggo)
+    
+    ego_ALL <- enrichGO(gene = test$ENTREZID, 
+                        #universe = names(geneList), #背景基因集
+                        OrgDb = org.Hs.eg.db, #没有organism="human"，改为OrgDb=org.Hs.eg.db
+                        #keytype = 'ENSEMBL',
+                        ont = "ALL", #也可以是 CC  BP  MF中的一种
+                        pAdjustMethod = "BH", #矫正方式 holm”, “hochberg”, “hommel”, “bonferroni”, “BH”, “BY”, “fdr”, “none”中的一种
+                        pvalueCutoff = 1, #P值会过滤掉很多，可以全部输出
+                        qvalueCutoff = 1,
+                        readable = TRUE) #Gene ID 转成gene Symbol ，易读
+    head(ego_ALL,2)  
+    barplot(ego_ALL)
+    
+    
+    kk <- enrichKEGG(gene = test$ENTREZID,
+                     organism = 'hsa', #KEGG可以用organism = 'hsa'
+                     pvalueCutoff = 1)  
+   B<-dotplot(kk,title="Enrichment KEGG_dot")
+   
+   
+   library("cowplot")
+   plot_grid(A, B, 
+             labels = c("A", "B"),
+             ncol = 2, nrow = 1)
